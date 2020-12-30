@@ -33,16 +33,31 @@ RUN aws --version # Verify AWS CLI installation.
 # Explicitly set CA cert to resolve SSL issues with AWS.
 ENV AWS_CA_BUNDLE /aws/dist/botocore/cacert.pem
 
-RUN mkdir -p /application
+RUN mkdir -p /application/content-build
+RUN chown -R vets-website:vets-website /application
 
-WORKDIR /application
+WORKDIR /application/
 
 USER vets-website
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
+
+
 FROM base as installer
 
-COPY --chown=vets-website:vets-website . /application
+COPY --chown=vets-website:vets-website . /application/content-build
+
+WORKDIR /application/content-build
 
 RUN yarn install --production=false
+
+
+
+FROM installer as builder
+
+RUN git clone --depth 1 https://github.com/department-of-veterans-affairs/vagov-content.git /application/vagov-content
+
+RUN yarn fetch-drupal-cache --buildtype=vagovprod
+
+RUN NODE_ENV=production INSTALL_HOOKS='no' yarn build --buildtype=vagovprod 

@@ -4,7 +4,7 @@ services:
     image: content-build:${IMAGE_TAG:-latest}
     build:
       context: .
-      target: installer
+      target: builder
     environment:
       WEB_HOST: 'content-build'
       WEB_PORT: 3001
