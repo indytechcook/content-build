@@ -1,6 +1,6 @@
 # based on https://github.com/nodejs/docker-node/blob/master/4.7/slim/Dockerfile
 
-FROM node:14.15.0
+FROM node:14.15.0 as base
 
 # default case is Jenkins, but we want to be able to overwrite this
 ARG userid=504
@@ -40,3 +40,9 @@ WORKDIR /application
 USER vets-website
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+FROM base as installer
+
+COPY --chown=vets-website:vets-website . /application
+
+RUN yarn install --production=false
